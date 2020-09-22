@@ -1,19 +1,46 @@
 from kafka import KafkaConsumer
+import requests
 from json import loads
 
 class Consumer:
     def __init__(self, config):
         self.properties = self._get_properties(config)
+        self.airflow = config['airflow']
 
     def consume_from_kafka(self):
+        # todo: handle ssl parameters
         consumer = KafkaConsumer(**self.properties['consumer'])
-
         # todo: logging consumer initialization
 
         for record in consumer:
+            print(f'Got next message: {record}')
+            # todo: logging input message
+            # todo: todo
+            data = None
+            self.http_post(data)
+
+    def http_post(self, data: str) -> None:
+        # todo: logging data that gotta be send
+        # todo: how to get dag_name? (val airflowURL)
+        dag_name = None
+        airflow_url = f'{self.airflow}/api/experimental/dags/{dag_name}/dag_runs'
+
+        response = requests.post(
+            url=airflow_url,
+            data={},
+            headers={
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
+            })
+
+        if response.ok:
+            # todo: logging "locally" -> "Triggered Airflow DAG successfully"
+            # todo: DatabaseConnector(configurtion).logToDB('INFO', data, '')
             pass
-
-
+        else:
+            # todo: logging "locally" -> "Error while triggering Airflow DAG"
+            # todo: DatabaseConnector(configurtion).logToDB('ERROR', data, 'Error while Triggering Airflow DAG')
+            pass
 
     @staticmethod
     def _get_properties(config):
@@ -41,15 +68,5 @@ class Consumer:
 
         return properties
 
-#
-# consumer = KafkaConsumer(
-#     'sample',
-#     bootstrap_servers=['localhost:9092'],
-#     auto_offset_reset='latest',
-#     enable_auto_commit=True,
-#     group_id='test-group',
-#     value_deserializer=lambda x: loads(x.decode('utf-8'))
-# )
-#
 
 
