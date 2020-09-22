@@ -2,10 +2,13 @@ from kafka import KafkaConsumer
 import requests
 from json import loads
 
+
 class Consumer:
     def __init__(self, config):
         self.properties = self._get_properties(config)
         self.airflow = config['airflow']
+        # todo: Add DatabaseConnector implementation
+        self.db = None
 
     def consume_from_kafka(self):
         # todo: handle ssl parameters
@@ -14,10 +17,9 @@ class Consumer:
 
         for record in consumer:
             print(f'Got next message: {record}')
-            # todo: logging input message
-            # todo: todo
-            data = None
-            self.http_post(data)
+            # todo: logging "locally record.value input"
+            # todo: logging DatabaseConnector(configuration).logToDB("INFO", data.value, "")
+            self.http_post(record.value)
 
     def http_post(self, data: str) -> None:
         # todo: logging data that gotta be send
@@ -35,12 +37,17 @@ class Consumer:
 
         if response.ok:
             # todo: logging "locally" -> "Triggered Airflow DAG successfully"
-            # todo: DatabaseConnector(configurtion).logToDB('INFO', data, '')
+            # todo: DatabaseConnector(configuration).logToDB('INFO', data, '')
             pass
         else:
             # todo: logging "locally" -> "Error while triggering Airflow DAG"
             # todo: DatabaseConnector(configurtion).logToDB('ERROR', data, 'Error while Triggering Airflow DAG')
             pass
+
+    # todo: add implementation
+    @staticmethod
+    def get_message_type(data):
+        pass
 
     @staticmethod
     def _get_properties(config):
