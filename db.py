@@ -1,6 +1,7 @@
 import cx_Oracle
 from datetime import datetime
 
+
 class DatabaseConnector:
     def __init__(self, config):
         # todo: add implementation of logger obj
@@ -44,11 +45,9 @@ class DatabaseConnector:
             self._cur.rollback()
             raise ex
 
-      # VA${configuration.applicationName}','$message','$exception')""".stripMargin
-      # tmp = """INSERT INTO $table (CREATED,LOG_LEVEL,APPLICATION,MESSAGE,EXCEPTION_TEXT) VALUES(to_date('$currentTimestamp', 'yyyy-mm-dd HH24:MI:SS'),'$logLevel','${configuration.applicationName}','$message','$exception')""".stripMargin
-
     def get_config_from_db(self, message_type: str) -> str:
         airflow_dag = None
+
         try:
             query = f'''
             SELECT AIRFLOW_DAG FROM {self._config_table}
@@ -56,13 +55,19 @@ class DatabaseConnector:
             '''
             # todo: add logging "locally" -> "Getting Configuration from database ..."
             self._cur.execute(query)
-            # todo: "locally" logging
-
+            result = self._cur.fetchone()
+            if result:
+                # todo: "locally" logging
+                airflow_dag = result[0]
+                # todo: "locally" logging -> "Got airflow DAG {airflow_dag}
+                return airflow_dag
+            else:
+                # todo: "locally" logging -> Not found DAG with name {name}
+                # todo: add some exception
+                pass
 
         except Exception as ex:
             raise ex
-
-
 
     def __del__(self):
         self._con.close()

@@ -1,16 +1,19 @@
 from kafka import KafkaConsumer
+from db import DatabaseConnector
 import requests
 from json import loads
 
 
 class Consumer:
     def __init__(self, config):
-        self.properties = self._get_properties(config)
-        self.airflow = config['airflow']
-        # todo: Add DatabaseConnector implementation
-        self.db = None
+        self._airflow = config['airflow']
+        self._properties = self._get_properties(config)
+        self._db = DatabaseConnector(config)
 
-    def consume_from_kafka(self):
+    def run(self) -> None:
+        self._consume_from_kafka()
+
+    def _consume_from_kafka(self) -> None:
         # todo: handle ssl parameters
         consumer = KafkaConsumer(**self.properties['consumer'])
         # todo: logging consumer initialization
@@ -18,15 +21,14 @@ class Consumer:
         for record in consumer:
             print(f'Got next message: {record}')
             # todo: logging "locally record.value input"
-            # todo: logging DatabaseConnector(configuration).logToDB("INFO", data.value, "")
+            self._db.log_to_db('INFO', record.value, '')
             self.http_post(record.value)
 
     def http_post(self, data: str) -> None:
         # todo: logging "locally" -> f'Triggering DAG with the following data: {data}'
-        # todoL
         # todo: how to get dag_name? (val airflowURL)
-        dag_name = None
-        airflow_url = f'{self.airflow}/api/experimental/dags/{dag_name}/dag_runs'
+        dag_name = self._db.get_config_from_db(self.get_message_type(data=data))
+        airflow_url = f'{self._airflow}/api/experimental/dags/{dag_name}/dag_runs'
 
         response = requests.post(
             url=airflow_url,
