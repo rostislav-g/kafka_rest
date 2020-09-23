@@ -22,7 +22,8 @@ class Consumer:
             self.http_post(record.value)
 
     def http_post(self, data: str) -> None:
-        # todo: logging data that gotta be send
+        # todo: logging "locally" -> f'Triggering DAG with the following data: {data}'
+        # todoL
         # todo: how to get dag_name? (val airflowURL)
         dag_name = None
         airflow_url = f'{self.airflow}/api/experimental/dags/{dag_name}/dag_runs'
